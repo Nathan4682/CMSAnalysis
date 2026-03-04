@@ -51,9 +51,21 @@ void PdeWIP()
 {
 	HiggsCompleteAnalysis analysis;
 	HistVariable histvar(HistVariable::VariableType::RecoSameSignInvariantMass, "", true, false);
+<<<<<<< HEAD
 	TH1 *hist = analysis.getHist(histvar, "ZZ", false, "eeee");
 	// count numb bins
 	int nBins = hist->GetNbinsX();
+=======
+	TH1 *hist = analysis.getHist(histvar, "ZZ Background", false, "eeee");
+	// count numb bins
+	int nBins = hist->GetNbinsX();
+
+	std::cout << "Hist Name:    " << hist->GetName() << std::endl;
+	std::cout << "Hist Title:   " << hist->GetTitle() << std::endl;
+	std::cout << "Total Bins:   " << hist->GetNbinsX() << std::endl;
+	std::cout << "Total Events: " << hist->GetEntries() << std::endl;
+	std::cout << "-------------------" << std::endl;
+>>>>>>> temp
 
 	for (int i = 1; i <= nBins; ++i)
 	{
