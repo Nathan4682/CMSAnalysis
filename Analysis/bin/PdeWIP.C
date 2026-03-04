@@ -51,9 +51,15 @@ void pdetest()
 {
 	HiggsCompleteAnalysis analysis;
 	HistVariable histvar(HisVariable::ParticleType::RecoSameSignInvariantMass, "", true, false);
-	TH1 *hist =analysis->getHist(histvar, "ZZ", false, "eeee");
-	// count numb bins
+	TH1 *hist =analysis->getHist(histvar, "ZZ Background", false, "eeee");
+	// count numb bins 
 	int nBins = analysis->GetNbinsX();
+
+	std::cout << "Hist Name:    " << hist->GetName() << std::endl;
+	std::cout << "Hist Title:   " << hist->GetTitle() << std::endl;
+	std::cout << "Total Bins:   " << hist->GetNbinsX() << std::endl;
+	std::cout << "Total Events: " << hist->GetEntries() << std::endl;
+	std::cout << "-------------------" << std::endl;
 
 	for (int i = 1; i <= nBins; ++i)
 	{
@@ -66,7 +72,7 @@ void pdetest()
 				<< ", Events = " << y_events 
 				<< " +/- " << y_error << std::endl;
 	}
-	
+
 	// ENTER BACKGROUND SAMPLES HERE!!!
 	std::vector<double> backgroundSamples = {3.2, 2.9, 3.5, 3.0};
 	double h = 1.0;
