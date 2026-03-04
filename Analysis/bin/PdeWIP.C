@@ -2,8 +2,8 @@
 #include <algorithm>
 #include "Math/DistFunc.h"
 #include "TF1.h"
-#include "HiggsCompleteAnalysis.hh"
-#include "HistVariable.hh"
+#include "CMSAnalysis/Analysis/interface/HiggsCompleteAnalysis.hh"
+#include "CMSAnalysis/Analysis/interface/HistVariable.hh"
 
 // Function definitions
 // b is point at which you take KDE, vector is data set, h is bandwidth (you choose h!)
@@ -42,31 +42,31 @@ double marginalizedPoissonIntegral(double mu,
 			double lambda = mu + b;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 			// A root function that does poission cdf for you! awesome!
 			double tail = 1.0 - ROOT::Math::poisson_cdf(Nobs - 1, lambda);
-			return tail * boxcarKtDE(b, backgroundSamples, h); }, bmin, bmax, 0);
+			return tail * boxcarKDE(b, backgroundSamples, h); }, bmin, bmax, 0);
 
 	// Perform numerical integration
 	return integrand.Integral(bmin, bmax);
 }
-void pdetest()
+void PdeWIP()
 {
 	HiggsCompleteAnalysis analysis;
-	HistVariable histvar(HisVariable::ParticleType::RecoSameSignInvariantMass, "", true, false);
-	TH1 *hist =analysis->getHist(histvar, "ZZ", false, "eeee");
+	HistVariable histvar(HistVariable::VariableType::RecoSameSignInvariantMass, "", true, false);
+	TH1 *hist = analysis.getHist(histvar, "ZZ", false, "eeee");
 	// count numb bins
-	int nBins = analysis->GetNbinsX();
+	int nBins = hist->GetNbinsX();
 
 	for (int i = 1; i <= nBins; ++i)
 	{
 		double x_center = hist->GetBinCenter(i);
 		double y_events = hist->GetBinContent(i);
-		double y_error  = hist->GetBinError(i);
+		double y_error = hist->GetBinError(i);
 
-		std::cout << "Bin " << i 
-				<< ": Center = " << x_center 
-				<< ", Events = " << y_events 
-				<< " +/- " << y_error << std::endl;
+		std::cout << "Bin " << i
+				  << ": Center = " << x_center
+				  << ", Events = " << y_events
+				  << " +/- " << y_error << std::endl;
 	}
-	
+
 	// ENTER BACKGROUND SAMPLES HERE!!!
 	std::vector<double> backgroundSamples = {3.2, 2.9, 3.5, 3.0};
 	double h = 1.0;
