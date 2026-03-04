@@ -76,7 +76,12 @@ void PdeWIP()
 				  << ": Center = " << x_center
 				  << ", Events = " << y_events
 				  << " +/- " << y_error << std::endl;
+
+		for (int i = 1 i <= y_events)
+		{
+			backgroundSamples.pushback(x_center)
 		}
+	}
 
 	// Use TF1 to define the function f(mu) = integral - 0.05
 	TF1 f("f", [&](double *x, double *)
