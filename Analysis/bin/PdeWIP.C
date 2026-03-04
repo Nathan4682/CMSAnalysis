@@ -51,12 +51,7 @@ void PdeWIP()
 {
 	HiggsCompleteAnalysis analysis;
 	HistVariable histvar(HistVariable::VariableType::RecoSameSignInvariantMass, "", true, false);
-<<<<<<< HEAD
-	TH1 *hist = analysis.getHist(histvar, "ZZ", false, "eeee");
-	// count numb bins
-	int nBins = hist->GetNbinsX();
-=======
-	TH1 *hist = analysis.getHist(histvar, "ZZ Background", false, "eeee");
+	TH1 *hist = analysis.getHist(histvar, "ZZ Background", false, "");
 	// count numb bins
 	int nBins = hist->GetNbinsX();
 
@@ -65,7 +60,11 @@ void PdeWIP()
 	std::cout << "Total Bins:   " << hist->GetNbinsX() << std::endl;
 	std::cout << "Total Events: " << hist->GetEntries() << std::endl;
 	std::cout << "-------------------" << std::endl;
->>>>>>> temp
+
+	// ENTER BACKGROUND SAMPLES HERE!!!
+	std::vector<double> backgroundSamples = {};
+	double h = 1.0;
+	int Nobs = 7;
 
 	for (int i = 1; i <= nBins; ++i)
 	{
@@ -77,12 +76,7 @@ void PdeWIP()
 				  << ": Center = " << x_center
 				  << ", Events = " << y_events
 				  << " +/- " << y_error << std::endl;
-	}
-
-	// ENTER BACKGROUND SAMPLES HERE!!!
-	std::vector<double> backgroundSamples = {3.2, 2.9, 3.5, 3.0};
-	double h = 1.0;
-	int Nobs = 7;
+		}
 
 	// Use TF1 to define the function f(mu) = integral - 0.05
 	TF1 f("f", [&](double *x, double *)
