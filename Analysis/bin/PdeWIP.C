@@ -25,6 +25,21 @@ double boxcarKDE(double b, const std::vector<double> &samples, double h)
 	// 1/nh part of function before returning value
 	return static_cast<double>(count) / (n * h);
 }
+
+double mu;
+std::vector<double> backgroundSamples;
+double h;
+int Nobs;
+
+double confusing(double *x, double *p)
+{
+	double b = x[0];
+	double lambda = mu + b;
+	// A root function that does poission cdf for you! awesome!
+	double tail = 1.0 - ROOT::Math::poisson_cdf(Nobs - 1, lambda);
+	return tail * boxcarKDE(b, backgroundSamples, h);
+}
+
 // function of stuff that works apparently
 double marginalizedPoissonIntegral(double mu,
 								   const std::vector<double> &backgroundSamples,
@@ -34,34 +49,34 @@ double marginalizedPoissonIntegral(double mu,
 	// Integration limits: min/max of background ± half bandwidth, saves some time so not calculating parts of integral where no data exists
 	double bmin = *std::min_element(backgroundSamples.begin(), backgroundSamples.end()) - h / 2.0;
 	double bmax = *std::max_element(backgroundSamples.begin(), backgroundSamples.end()) + h / 2.0;
-
-	// TF1 for integrand
-	TF1 integrand("integrand", [&](double *x, double *p)
-				  {
-			double b = x[0];
-			double lambda = mu + b;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-			// A root function that does poission cdf for you! awesome!
-			double tail = 1.0 - ROOT::Math::poisson_cdf(Nobs - 1, lambda);
-			return tail * boxcarKDE(b, backgroundSamples, h); }, bmin, bmax, 0);
+	// remove lambda
+	::mu = mu;
+	::backgroundSamples = backgroundSamples;
+	::h = h;
+	::Nobs = Nobs;
+	//  TF1 for integrand
+	// double conf_val = confusing(mu, Nobs, h, backgroundSamples);
+	TF1 integrand("integrand", confusing, bmin, bmax, 0);
 
 	// Perform numerical integration
 	return integrand.Integral(bmin, bmax);
 }
+
 void PdeWIP()
 {
 	HiggsCompleteAnalysis analysis;
-	HistVariable histvar(HistVariable::VariableType::RecoSameSignInvariantMass, "", true, false);
-	TH1 *hist = analysis.getHist(histvar, "ZZ Background", false, "");
+	HistVariable histvar(HistVariable::VariableType::InvariantMass, "", true, false);
+	TH1 *hist = analysis.getHist(histvar, "ZZ Background", false, "eeee");
 	// count numb bins
 	int nBins = hist->GetNbinsX();
 
-	std::cout << "Hist Name:    " << hist->GetName() << std::endl;
-	std::cout << "Hist Title:   " << hist->GetTitle() << std::endl;
-	std::cout << "Total Bins:   " << hist->GetNbinsX() << std::endl;
-	std::cout << "Total Events: " << hist->GetEntries() << std::endl;
-	std::cout << "-------------------" << std::endl;
+	// std::cout << "Hist Name:    " << hist->GetName() << std::endl;
+	// std::cout << "Hist Title:   " << hist->GetTitle() << std::endl;
+	// std::cout << "Total Bins:   " << hist->GetNbinsX() << std::endl;
+	// std::cout << "Total Events: " << hist->GetEntries() << std::endl;
+	// std::cout << "-------------------" << std::endl;
 
-	// ENTER BACKGROUND SAMPLES HERE!!!
+	// DON'T ENTER BACKGROUND SAMPLES HERE!!!
 	std::vector<double> backgroundSamples = {};
 	double h = 1.0;
 	int Nobs = 7;
@@ -72,14 +87,14 @@ void PdeWIP()
 		double y_events = hist->GetBinContent(i);
 		double y_error = hist->GetBinError(i);
 
-		std::cout << "Bin " << i
-				  << ": Center = " << x_center
-				  << ", Events = " << y_events
-				  << " +/- " << y_error << std::endl;
+		// std::cout << "Bin " << i
+		//		  << ": Center = " << x_center
+		//		  << ", Events = " << y_events
+		//		  << " +/- " << y_error << std::endl;
 
-		for (int i = 1 i <= y_events)
+		for (int i = 1; i <= y_events; ++i)
 		{
-			backgroundSamples.pushback(x_center)
+			backgroundSamples.push_back(x_center);
 		}
 	}
 
