@@ -91,14 +91,15 @@ void PdeWIP()
 		}
 	}
 
-	// Copy local data into the globals 
+	// Copy local data into the globals
 	::backgroundSamples = backgroundSamplesLocal;
 	::h = hLocal;
 	::Nobs = NobsLocal;
 
-	TF1 f("f", limitRootFunction, 0, 20, 0);
+	// Bounds of mu search is 0-2000
+	TF1 f("f", limitRootFunction, 0, 2000, 0);
 
-	double mu_limit = f.GetX(0.0, 0.0, 20.0);
+	double mu_limit = f.GetX(0.0, 0.0, 2000.0);
 
 	std::cout << "95% CL upper limit on mu = " << mu_limit << std::endl;
 }
