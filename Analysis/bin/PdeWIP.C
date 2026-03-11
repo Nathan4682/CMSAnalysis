@@ -31,13 +31,65 @@ std::vector<double> backgroundSamples;
 double h;
 int Nobs;
 
-double confusing(double *x, double *p)
+double signalRegionMin;
+double signalRegionMax;
+double totalBackgroundNorm; // this is v_B
+
+// Computes int dm for the boxcar KDE 
+double backgroundFractionInSignalRegion(const std::vector<double> &massSamples,
+										double h,
+										double sMin,
+										double sMax)
 {
-	double b = x[0];
-	double lambda = mu + b;
-	// A root function that does poission cdf for you! awesome!
+	int n = massSamples.size();
+	if (n == 0 || h <= 0.0 || sMax <= sMin)
+		return 0.0;
+
+	double totalOverlap = 0.0;
+
+	for (double m_i : massSamples)
+	{
+		double kernelMin = m_i - h / 2.0;
+		double kernelMax = m_i + h / 2.0;
+		totalOverlap += intervalOverlap(kernelMin, kernelMax, sMin, sMax);
+	}
+
+	return totalOverlap / (n * h);
+}
+
+// Computes b_s int dm
+double expectedBackgroundYieldInSignalRegion(const std::vector<double> &massSamples,
+											 double h,
+											 double sMin,
+											 double sMax,
+											 double nuB)
+{
+	return nuB * backgroundFractionInSignalRegion(massSamples, h, sMin, sMax);
+}
+
+double intervalOverlap(double a1, double a2, double b1, double b2)
+{
+	double left = std::max(a1, b1);
+	double right = std::min(a2, b2);
+	return std::max(0.0, right - left);
+}
+
+double integrand_call(double *x, double *p)
+{
+	(void)x;
+	(void)p;
+
+	double b_estimated =
+		expectedBackgroundYieldInSignalRegion(backgroundSamples,
+											  h,
+											  signalRegionMin,
+											  signalRegionMax,
+											  totalBackgroundNorm);
+
+	double lambda = mu + b_estimated;
 	double tail = 1.0 - ROOT::Math::poisson_cdf(Nobs - 1, lambda);
-	return tail * boxcarKDE(b, backgroundSamples, h);
+
+	return tail;
 }
 
 // function of stuff that works apparently
@@ -46,20 +98,12 @@ double marginalizedPoissonIntegral(double mu,
 								   double h,
 								   int Nobs)
 {
-	// Integration limits: min/max of background ± half bandwidth, saves some time so not calculating parts of integral where no data exists
-	double bmin = *std::min_element(backgroundSamples.begin(), backgroundSamples.end()) - h / 2.0;
-	double bmax = *std::max_element(backgroundSamples.begin(), backgroundSamples.end()) + h / 2.0;
-	// remove lambda
 	::mu = mu;
 	::backgroundSamples = backgroundSamples;
 	::h = h;
 	::Nobs = Nobs;
-	//  TF1 for integrand
-	// double conf_val = confusing(mu, Nobs, h, backgroundSamples);
-	TF1 integrand("integrand", confusing, bmin, bmax, 0);
 
-	// Perform numerical integration
-	return integrand.Integral(bmin, bmax);
+	return integrand_call(nullptr, nullptr);
 }
 
 double limitRootFunction(double *x, double *)
