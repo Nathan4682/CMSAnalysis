@@ -101,5 +101,10 @@ void PdeWIP()
 
 	double mu_limit = f.GetX(0.0, 0.0, 2000.0);
 
+	std::cout << "Histogram " << hist->GetName()
+			  << (hist->GetEntries() > 0 ? " has content." : " is empty.")
+			  << " (Entries = " << hist->GetEntries() << ")"
+			  << std::endl;
+
 	std::cout << "95% CL upper limit on mu = " << mu_limit << std::endl;
 }
