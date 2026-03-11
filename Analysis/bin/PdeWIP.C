@@ -35,7 +35,14 @@ double signalRegionMin;
 double signalRegionMax;
 double totalBackgroundNorm; // this is v_B
 
-// Computes int dm for the boxcar KDE 
+double intervalOverlap(double a1, double a2, double b1, double b2)
+{
+	double left = std::max(a1, b1);
+	double right = std::min(a2, b2);
+	return std::max(0.0, right - left);
+}
+
+// Computes int dm for the boxcar KDE
 double backgroundFractionInSignalRegion(const std::vector<double> &massSamples,
 										double h,
 										double sMin,
@@ -65,13 +72,6 @@ double expectedBackgroundYieldInSignalRegion(const std::vector<double> &massSamp
 											 double nuB)
 {
 	return nuB * backgroundFractionInSignalRegion(massSamples, h, sMin, sMax);
-}
-
-double intervalOverlap(double a1, double a2, double b1, double b2)
-{
-	double left = std::max(a1, b1);
-	double right = std::min(a2, b2);
-	return std::max(0.0, right - left);
 }
 
 double integrand_call(double *x, double *p)
