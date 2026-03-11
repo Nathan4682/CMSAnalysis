@@ -62,24 +62,22 @@ double marginalizedPoissonIntegral(double mu,
 	return integrand.Integral(bmin, bmax);
 }
 
+double limitRootFunction(double *x, double *)
+{
+	double muVal = x[0];
+	return marginalizedPoissonIntegral(muVal, ::backgroundSamples, ::h, ::Nobs) - 0.05;
+}
+
 void PdeWIP()
 {
 	HiggsCompleteAnalysis analysis;
 	HistVariable histvar(HistVariable::VariableType::InvariantMass, "", true, false);
 	TH1 *hist = analysis.getHist(histvar, "ZZ Background", false, "eeee");
-	// count numb bins
 	int nBins = hist->GetNbinsX();
 
-	// std::cout << "Hist Name:    " << hist->GetName() << std::endl;
-	// std::cout << "Hist Title:   " << hist->GetTitle() << std::endl;
-	// std::cout << "Total Bins:   " << hist->GetNbinsX() << std::endl;
-	// std::cout << "Total Events: " << hist->GetEntries() << std::endl;
-	// std::cout << "-------------------" << std::endl;
-
-	// DON'T ENTER BACKGROUND SAMPLES HERE!!!
-	std::vector<double> backgroundSamples = {};
-	double h = 1.0;
-	int Nobs = 7;
+	std::vector<double> backgroundSamplesLocal = {};
+	double hLocal = 1.0;
+	int NobsLocal = 7;
 
 	for (int i = 1; i <= nBins; ++i)
 	{
@@ -87,25 +85,20 @@ void PdeWIP()
 		double y_events = hist->GetBinContent(i);
 		double y_error = hist->GetBinError(i);
 
-		// std::cout << "Bin " << i
-		//		  << ": Center = " << x_center
-		//		  << ", Events = " << y_events
-		//		  << " +/- " << y_error << std::endl;
-
-		for (int i = 1; i <= y_events; ++i)
+		for (int j = 1; j <= y_events; ++j)
 		{
-			backgroundSamples.push_back(x_center);
+			backgroundSamplesLocal.push_back(x_center);
 		}
 	}
 
-	// Use TF1 to define the function f(mu) = integral - 0.05
-	TF1 f("f", [&](double *x, double *)
-		  {
-        double mu = x[0];
-        return marginalizedPoissonIntegral(mu, backgroundSamples, h, Nobs) - 0.05; }, 0, 20, 0);
+	// Copy local data into the globals 
+	::backgroundSamples = backgroundSamplesLocal;
+	::h = hLocal;
+	::Nobs = NobsLocal;
 
-	// Use GetX to find root, does bisection and other stuff for you!
-	double mu_limit = f.GetX(0.0); // initial guess = 0
+	TF1 f("f", limitRootFunction, 0, 20, 0);
+
+	double mu_limit = f.GetX(0.0, 0.0, 20.0);
 
 	std::cout << "95% CL upper limit on mu = " << mu_limit << std::endl;
 }
