@@ -1,30 +1,10 @@
+#include <cmath>
 #include <vector>
 #include <algorithm>
 #include "Math/DistFunc.h"
 #include "TF1.h"
 #include "CMSAnalysis/Analysis/interface/HiggsCompleteAnalysis.hh"
 #include "CMSAnalysis/Analysis/interface/HistVariable.hh"
-
-// Function definitions
-// b is point at which you take KDE, vector is data set, h is bandwidth (you choose h!)
-double boxcarKDE(double b, const std::vector<double> &samples, double h)
-{
-	// prevents error, returns 0 if bandwidth is invalid (0 or negative) or the data set is empty
-	int n = samples.size();
-	if (n == 0 || h <= 0.0)
-		return 0.0;
-
-	// counter and summation part of function
-	int count = 0;
-	for (double bi : samples)
-	{
-		if (std::abs(b - bi) <= h / 2.0)
-			count++;
-	}
-
-	// 1/nh part of function before returning value
-	return static_cast<double>(count) / (n * h);
-}
 
 double mu;
 std::vector<double> backgroundSamples;
@@ -35,12 +15,15 @@ double signalRegionMin;
 double signalRegionMax;
 double totalBackgroundNorm; // this is v_B
 
+/*
 double intervalOverlap(double a1, double a2, double b1, double b2)
 {
 	double left = std::max(a1, b1);
 	double right = std::min(a2, b2);
 	return std::max(0.0, right - left);
 }
+
+Boxcar KDE
 
 // Computes int dm for the boxcar KDE
 double backgroundFractionInSignalRegion(const std::vector<double> &massSamples,
@@ -62,6 +45,33 @@ double backgroundFractionInSignalRegion(const std::vector<double> &massSamples,
 	}
 
 	return totalOverlap / (n * h);
+}*/
+
+double normalCDF(double x)
+{
+	return 0.5 * (1.0 + std::erf(x / std::sqrt(2.0)));
+}
+
+// Computes int_{sMin}^{sMax} dm for the Gaussian KDE
+double backgroundFractionInSignalRegion(const std::vector<double> &massSamples,
+										double h,
+										double sMin,
+										double sMax)
+{
+	int n = massSamples.size();
+	if (n == 0 || h <= 0.0 || sMax <= sMin)
+		return 0.0;
+
+	double totalMass = 0.0;
+
+	for (double m_i : massSamples)
+	{
+		double zMax = (sMax - m_i) / h;
+		double zMin = (sMin - m_i) / h;
+		totalMass += normalCDF(zMax) - normalCDF(zMin);
+	}
+
+	return totalMass / n;
 }
 
 // Computes b_s int dm
